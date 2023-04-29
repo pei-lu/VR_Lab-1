@@ -10,8 +10,9 @@ public class MyInteractor : MonoBehaviour
     [SerializeField] private Transform _interactionAncher;
     [SerializeField] private float _redius  = 0.1f;
     [SerializeField] private LayerMask _interactionLayermask;
-    private readonly Collider[] handcolid = new Collider[3];
+    private readonly Collider[] handcolid = new Collider[10];
     [SerializeField] private int numFound = 0;
+    
     // var used in get device by xrNode
     [SerializeField] private XRNode lefthandNode;
     private List<InputDevice> devices = new List<InputDevice>();
@@ -21,7 +22,7 @@ public class MyInteractor : MonoBehaviour
     private List<InputDevice> rightdevices = new List<InputDevice>();
     private InputDevice RControler;
 
-    private myInteractable temp;
+    private myInteractable[] temp;
 
     void getDevice()
     {
@@ -55,30 +56,39 @@ public class MyInteractor : MonoBehaviour
         if (numFound > 0)
         {
             var interactable = handcolid[0].GetComponent<myInteractable>();
-            if (interactable != null)
+            //interact with all element colided
+            for (int i = 0; i < numFound; i++)
             {
-                temp = interactable;
-                //colide call contact
-                interactable.interact(this);
-                bool ltriggerButtonAction = false;
-                if (lControler.TryGetFeatureValue(CommonUsages.triggerButton, out ltriggerButtonAction) && ltriggerButtonAction)
+                
+                if (interactable != null)
                 {
-                    interactable.Leftinteract(this);
-                }
+                    interactable = handcolid[i].GetComponent<myInteractable>();
+                    temp  = new myInteractable[numFound];
+                    temp[i] = interactable;
+                    //colide call contact
+                    interactable.interact(this);
+                    bool ltriggerButtonAction = false;
+                    if (lControler.TryGetFeatureValue(CommonUsages.triggerButton, out ltriggerButtonAction) && ltriggerButtonAction)
+                    {
+                        interactable.Leftinteract(this);
+                    }
 
 
-                bool RtriggerButtonAction = false;
-                if (RControler.TryGetFeatureValue(CommonUsages.triggerButton, out RtriggerButtonAction) && RtriggerButtonAction)
-                {
-                    interactable.Rightinteract(this);
+                    bool RtriggerButtonAction = false;
+                    if (RControler.TryGetFeatureValue(CommonUsages.triggerButton, out RtriggerButtonAction) && RtriggerButtonAction)
+                    {
+                        interactable.Rightinteract(this);
+                    }
                 }
             }
-            
-            
         }
+        //has some bug, not able to disslect a part of all collider while stillselecting other(but not necerry in this project)
         else
         {
-            temp.loseContact(this);
+            foreach (myInteractable x in temp)
+            {
+                x.loseContact(this);
+            }
         }
     }
 
